@@ -299,6 +299,10 @@ class OqParam(valid.ParamSet):
                 raise ValueError('number_of_logic_tree_samples too big: %d' %
                                  self.number_of_logic_tree_samples)
 
+        # enable prefilter_sources = no for event_based
+        if self.calculation_mode.startswith('event_based'):
+            self.prefilter_sources = 'no'
+
         # check grid + sites
         if self.region_grid_spacing and (
                 'sites' in self.inputs or 'site_model' in self.inputs):

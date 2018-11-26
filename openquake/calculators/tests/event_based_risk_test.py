@@ -93,8 +93,8 @@ class EventBasedRiskTestCase(CalculatorTestCase):
 ============== ============= ==========
 portfolio_loss nonstructural structural
 ============== ============= ==========
-mean           4,585         15,603    
-stddev         839           556       
+mean           4,441         15,356    
+stddev         914           942       
 ============== ============= ==========''')
 
         # test the rup_loss_table exporter
