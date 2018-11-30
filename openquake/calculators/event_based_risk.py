@@ -305,14 +305,9 @@ class EbrCalculator(base.RiskCalculator):
         dstore = self.datastore
         self.before_export()  # set 'realizations'
         oq = self.oqparam
-        stats = oq. risk_stats()
         # store avg_losses-stats
         if oq.avg_losses:
             set_rlzs_stats(self.datastore, 'avg_losses')
-        try:
-            b = self.param['builder']
-        except KeyError:  # don't build auxiliary tables
-            return
         if dstore.parent:
             dstore.parent.open('r')  # to read the ruptures
         if 'ruptures' in self.datastore and len(self.datastore['ruptures']):
@@ -323,3 +318,5 @@ class EbrCalculator(base.RiskCalculator):
                 dstore['losses_by_rlzi'] = lbr
                 ridx = [rlt[:, lti].argmax() for lti in range(self.L)]
                 dstore.set_attrs('rup_loss_table', ridx=ridx)
+        if dstore.parent:
+            dstore.parent.close()
