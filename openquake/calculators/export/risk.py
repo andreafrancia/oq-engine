@@ -68,9 +68,12 @@ def export_agg_curve_rlzs(ekey, dstore):
     oq = dstore['oqparam']
     loss_dt = oq.loss_dt()
     curves = dstore[ekey[0][4:]]  # strip agg_
-    tags = curves.attrs['stats']
+    if ekey[0].endswith('-stats'):
+        tags = [s.decode('utf8') for s in curves.attrs['stats']]
+    else:
+        tags = ['rlz-%d' % r for r in range(curves.shape[1])]
     periods = curves.attrs['return_periods']
-    aggcurve = curves.value.sum(axis=0)  # array of shape (S. P, LI)
+    aggcurve = curves.value.sum(axis=0)  # array of shape (S, P, LI)
     writer = writers.CsvWriter(fmt=writers.FIVEDIGITS)
     header = (('annual_frequency_of_exceedence', 'return_period') +
               loss_dt.names)
