@@ -1313,6 +1313,7 @@ def losses_by_period(losses, return_periods, num_events, eff_time):
     return curve
 
 
+# used in event_based_risk
 class LossesByPeriodBuilder(object):
     """
     Build losses by period for all loss types at the same time.
@@ -1343,37 +1344,17 @@ class LossesByPeriodBuilder(object):
             array_stats = None
         return array, array_stats
 
-    # used in postproc
-    def build(self, losses_by_event, stats=()):
-        """
-        :param losses_by_event:
-            the aggregate loss table as an array
-        :param stats:
-            list of pairs [(statname, statfunc), ...]
-        :returns:
-            two arrays of dtype loss_dt values with shape (P, R) and (P, S)
-        """
-        P, R = len(self.return_periods), len(self.weights)
-        array = numpy.zeros((P, R), self.loss_dt)
-        dic = group_array(losses_by_event, 'rlzi')
-        for r in dic:
-            num_events = self.num_events[r]
-            losses = dic[r]['loss']
-            for lti, lt in enumerate(self.loss_dt.names):
-                ls = losses[:, lti].flatten()  # flatten only in ucerf
-                # NB: do not use squeeze or the gmf_ebrisk tests will break
-                lbp = losses_by_period(
-                    ls, self.return_periods, num_events, self.eff_time)
-                array[:, r][lt] = lbp
-        return self.pair(array, stats)
-
-    # used in event_based_risk
     def build_curve(self, asset_value, loss_ratios, rlzi):
+        """
+        :param asset_value: value of the current asset
+        :param loss_ratios: loss ratios of the current asset
+        :param rlzi: realization index
+        :returns: a loss curve of length P
+        """
         return asset_value * losses_by_period(
             loss_ratios, self.return_periods,
             self.num_events[rlzi], self.eff_time)
 
-    # used in event_based_risk
     def build_maps(self, losses, clp, stats=()):
         """
         :param losses: an array of shape (A, R, P)

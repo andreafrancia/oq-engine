@@ -65,14 +65,18 @@ def get_rup_data(ebruptures):
 # this is used by event_based_risk
 @export.add(('agg_curves-rlzs', 'csv'), ('agg_curves-stats', 'csv'))
 def export_agg_curve_rlzs(ekey, dstore):
-    name = ekey[0].split('-')[0]
-    agg_curve, tags = _get(dstore, name)
-    periods = agg_curve.attrs['return_periods']
+    oq = dstore['oqparam']
+    loss_dt = oq.loss_dt()
+    curves = dstore[ekey[0][4:]]  # strip agg_
+    tags = curves.attrs['stats']
+    periods = curves.attrs['return_periods']
+    aggcurve = curves.value.sum(axis=0)  # array of shape (S. P, LI)
     writer = writers.CsvWriter(fmt=writers.FIVEDIGITS)
     header = (('annual_frequency_of_exceedence', 'return_period') +
-              agg_curve.dtype.names)
+              loss_dt.names)
     for r, tag in enumerate(tags):
-        d = compose_arrays(periods, agg_curve[:, r], 'return_period')
+        ag = aggcurve[r].view(loss_dt).squeeze()  # shape P
+        d = compose_arrays(periods, ag, 'return_period')
         data = compose_arrays(1 / periods, d, 'annual_frequency_of_exceedence')
         dest = dstore.build_fname('agg_loss', tag, 'csv')
         writer.save(data, dest, header)
